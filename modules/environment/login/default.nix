@@ -5,8 +5,6 @@
 with lib;
 
 let
-  cfg = config.environment.files;
-
   login = pkgs.callPackage ./login.nix { inherit config; };
 
   loginInner = pkgs.callPackage ./login-inner.nix {
@@ -45,7 +43,6 @@ in
 
   };
 
-
   ###### implementation
 
   config = {
@@ -71,13 +68,7 @@ in
       '';
 
       installProotStatic = ''
-        if (test -e /bin/.proot-static.new && ! diff /bin/.proot-static.new ${cfg.prootStatic}/bin/proot-static > /dev/null) || \
-            (! test -e /bin/.proot-static.new && ! diff /bin/proot-static ${cfg.prootStatic}/bin/proot-static > /dev/null); then
-          $DRY_RUN_CMD mkdir $VERBOSE_ARG --parents /bin
-          $DRY_RUN_CMD cp $VERBOSE_ARG ${cfg.prootStatic}/bin/proot-static /bin/.proot-static.tmp
-          $DRY_RUN_CMD chmod $VERBOSE_ARG u+w /bin/.proot-static.tmp
-          $DRY_RUN_CMD mv $VERBOSE_ARG /bin/.proot-static.tmp /bin/.proot-static.new
-        fi
+        $DRY_RUN_CMD cp $VERBOSE_ARG /bin/proot-static /bin/.proot-static.new
       '';
     };
 
