@@ -50,16 +50,29 @@ in
 
         nix_previous="$(command -v nix)"
 
-        nix profile list \
-          | grep 'nix-on-droid-path$' \
-          | cut -d ' ' -f 4 \
-          | xargs -t $DRY_RUN_CMD nix profile remove $VERBOSE_ARG
+        if nix profile list | grep -q 'nix-on-droid-path$'; then
+          $DRY_RUN_CMD $nix_previous profile remove nix-on-droid-path $VERBOSE_ARG
+        fi
 
         $DRY_RUN_CMD $nix_previous profile install ${cfg.path}
 
         unset nix_previous
       else
-        $DRY_RUN_CMD nix-env --install ${cfg.path}
+        nix_previous="$(command -v nix)"
+
+        # Older profiles may miss manifest.json, but nix profile still works and
+        # avoids legacy nix-env code paths that can fail on some Android devices.
+        if $nix_previous profile list > /dev/null 2>&1; then
+          if $nix_previous profile list | grep -q 'nix-on-droid-path$'; then
+            $DRY_RUN_CMD $nix_previous profile remove nix-on-droid-path $VERBOSE_ARG
+          fi
+
+          $DRY_RUN_CMD $nix_previous profile install ${cfg.path}
+        else
+          $DRY_RUN_CMD nix-env --install ${cfg.path}
+        fi
+
+        unset nix_previous
       fi
     '';
 
